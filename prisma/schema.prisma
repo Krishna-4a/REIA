@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Define the User model required for NextAuth
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  sessions      Session[]
+  accounts      Account[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  candidates    Candidate[] // Relation to Candidate model
+}
+
+
+
+// Define the Account model required for NextAuth
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Candidate {
+  id                 Int                   @id @default(autoincrement())
+  name               String
+  createdAt          DateTime              @default(now())
+  atsScores          ATS_Score[]
+  generatedATSScores Generated_ATS_Score[]
+  generatedResumes   Generated_Resume[]
+  resumes            Resume[]
+  userId    String      // Foreign key to User
+  user      User        @relation(fields: [userId], references: [id])
+}
+
+
+model Resume {
+  id                    Int                @id @default(autoincrement())
+  Resumefilename        String
+  ResumefileUrl         String
+  JobDescriptionfileUrl String?
+  JobDescription        String
+  uploadedAt            DateTime           @default(now())
+  candidateId           Int
+  atsScores             ATS_Score[]        // Remove fields, references, and onDelete here
+  generatedResumes      Generated_Resume[]
+  candidate             Candidate          @relation(fields: [candidateId], references: [id])
+}
+
+model ATS_Score {
+  id          Int       @id @default(autoincrement())
+  score       Int
+  summary     String
+  createdAt   DateTime  @default(now())
+  candidateId Int
+  resumeId    Int
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade) // Specify onDelete here
+}
+
+
+model Generated_Resume {
+  id                 Int                   @id @default(autoincrement())
+  Resumefilename     String
+  ResumefileUrl      String
+  JobDescription     String
+  uploadedAt         DateTime              @default(now())
+  candidateId        Int
+  resumeId           Int
+  generatedATSScores Generated_ATS_Score[] // Remove fields, references, and onDelete here
+  candidate          Candidate             @relation(fields: [candidateId], references: [id])
+  resume             Resume                @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Generated_ATS_Score {
+  id                Int              @id @default(autoincrement())
+  score             Int
+  summary           String
+  createdAt         DateTime         @default(now())
+  candidateId       Int
+  generatedResumeId Int
+  candidate         Candidate        @relation(fields: [candidateId], references: [id])
+  generatedResume   Generated_Resume @relation(fields: [generatedResumeId], references: [id], onDelete: Cascade) // Specify onDelete here
+}
