@@ -48,22 +48,27 @@ export default async function CandidatePage({ params }: { params: { id: string }
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
+        {/* Back Button aligned to the left */}
+        <Link
+          href="/"
+          className="bg-black text-white px-4 py-2 rounded-lg"
+        >
+          Back
+        </Link>
+
         <h1 className="text-2xl font-bold">{candidate.name}'s Profile</h1>
-        
-        {/* Create Resume Button */}
-        <Link 
-          href={`/generators?candidateId=${candidateId}`} 
+
+        {/* Upload Files Button */}
+        <Link
+          href={`/generators?candidateId=${candidateId}`}
           className="bg-black text-white px-4 py-2 rounded-lg"
         >
           Upload Files
         </Link>
       </div>
+      
       <ResumeTable candidate={candidateSerialized} />
 
-      <Link href="/" className="text-blue-500 mt-4 block">
-        Go Back
-      </Link>
     </div>
   );
 }
-

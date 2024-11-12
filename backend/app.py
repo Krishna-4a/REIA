@@ -30,8 +30,9 @@ def process_resume(resume_path, job_description, recruiter_prompt, api_key, prov
 
     # Build the processed resume
     processed_resume_path, _ = resume_llm.resume_builder(job_details, user_data)
+    print(processed_resume_path)
 
-    # Ensure the `public/generated` folder exists
+    #Ensure the `public/generated` folder exists
     output_dir = os.path.join(os.getcwd(), 'public', 'generated')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -45,11 +46,10 @@ def process_resume(resume_path, job_description, recruiter_prompt, api_key, prov
 
     # Move the processed file to the `generated` folder
     os.rename(processed_resume_path, destination_path)
-    print(f"File saved at: {destination_path}")
+    print(f"File saved at: {destination_path}") 
 
-    # Return the path to the generated resume file
+    #Return the path to the generated resume file 
     return destination_path
-
 if __name__ == "__main__":
     if len(sys.argv) != 7:
         print("Invalid arguments. Expected 6 arguments.")
@@ -61,6 +61,13 @@ if __name__ == "__main__":
     api_key = sys.argv[4]
     provider = sys.argv[5]
     model = sys.argv[6]
+
+    print(recruiter_prompt)
+    print(job_description)
+    print(provider)
+    print(api_key)
+    print(model)
+    print(resume_path)
 
     # Process the resume and print the path to the generated file
     processed_resume_path = process_resume(resume_path, job_description, recruiter_prompt, api_key, provider, model)

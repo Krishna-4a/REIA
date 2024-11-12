@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Modal from "react-modal";
+import { FaUser, FaCog } from "react-icons/fa"; // Import the candidate and settings icons
 
-// Define the Candidate, Resume, and ATS_Score interfaces
 interface Resume {
   id: number;
   filename: string;
@@ -27,7 +27,7 @@ interface Candidate {
   scores: ATS_Score[];
 }
 
-// Modal styles (using Tailwind for size control)
+// Modal styles
 const customStyles = {
   content: {
     top: "50%",
@@ -39,8 +39,8 @@ const customStyles = {
     width: "90%",
     maxWidth: "500px",
     padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+    borderRadius: "12px",
+    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
   },
 };
 
@@ -49,13 +49,12 @@ export default function HomePageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [candidateName, setCandidateName] = useState("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const router = useRouter();
+  const pathname = usePathname(); // Get the current route
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  // Handle creating a new candidate
   const handleCreateCandidate = async () => {
     try {
       const response = await fetch("/api/candidates", {
@@ -68,7 +67,7 @@ export default function HomePageContent() {
         alert("Candidate created successfully!");
         setCandidateName("");
         closeModal();
-        fetchCandidates(); // Refresh candidate list after adding a new candidate
+        fetchCandidates();
       } else {
         alert("Failed to create candidate.");
       }
@@ -77,90 +76,106 @@ export default function HomePageContent() {
     }
   };
 
-  // Fetch candidates from the API
   const fetchCandidates = async () => {
     try {
       const res = await fetch("/api/candidates");
       const data = await res.json();
-      console.log(data); // Log the candidates array to see if it contains valid IDs
       setCandidates(data);
     } catch (error) {
       console.error("Error fetching candidates:", error);
     }
   };
 
-
   useEffect(() => {
     if (status === "unauthenticated") {
       signIn();
     } else {
-      fetchCandidates(); // Fetch candidates when user is authenticated
+      fetchCandidates();
     }
   }, [status]);
 
   if (status === "loading") return <p>Loading...</p>;
   if (status === "unauthenticated") return null;
 
+  const isActiveRoute = (path: string) => pathname === path;
+
   return (
     <div className="flex h-screen">
-      <aside className="w-1/4 bg-gray-100 p-4 border-r border-gray-300 flex flex-col justify-between">
+      {/* Sidebar */}
+      <aside className="w-[15%] bg-white p-4 border-r border-gray-300 flex flex-col justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-6">ATS</h1>
+          <h1 className="text-xl font-semibold mb-6 text-black">REIA</h1>
           <ul>
             <li className="mb-4">
-              <a href="/" className="text-lg text-gray-700 hover:text-black">
-                Candidates
+              <a
+                href="/"
+                className={`text-lg px-4 py-2 rounded-lg flex items-center space-x-2 ${
+                  isActiveRoute("/") ? "bg-gray-800 text-white" : "text-gray-500 hover:bg-gray-200 hover:text-black"
+                }`}
+              >
+                <FaUser className={isActiveRoute("/") ? "text-white" : "text-gray-500"} />
+                <span>Candidates</span>
               </a>
             </li>
             <li className="mb-4">
-              <a href="/settings" className="text-lg text-gray-700 hover:text-black">
-                Settings
+              <a
+                href="/settings"
+                className={`text-lg px-4 py-2 rounded-lg flex items-center space-x-2 ${
+                  isActiveRoute("/settings") ? "bg-gray-800 text-white" : "text-gray-500 hover:bg-gray-200 hover:text-black"
+                }`}
+              >
+                <FaCog className={isActiveRoute("/settings") ? "text-white" : "text-gray-500"} />
+                <span>Settings</span>
               </a>
             </li>
           </ul>
         </div>
-        {/* User Information and Logout */}
         <div className="mt-auto">
-          <p>{session?.user?.name}</p>
-          <button onClick={() => signOut()} className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          <button
+            onClick={() => signOut()}
+            className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          >
             Logout
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="relative flex-1 p-8">
-        {/* New Candidate Button in the top-right corner */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">All Candidates</h1>
-          {/* Open modal instead of navigating */}
-          <button onClick={openModal} className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800">
+      <div className="relative flex-1 p-8 bg-gray-100">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-semibold text-gray-800">All Candidates</h1>
+          <button
+            onClick={openModal}
+            className="bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition"
+          >
             New Candidate
           </button>
         </div>
 
-        {/* Display list of candidates */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {candidates.length > 0 ? (
             candidates.map((candidate) => (
               <div
                 key={candidate.id}
-                className="relative flex flex-col justify-between items-center bg-white border border-gray-200 rounded-lg shadow-lg p-4 hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-                onClick={() => router.push(`/candidates/${candidate.id}`)} // Navigate to candidate's page
+                className="relative flex flex-col justify-between items-center bg-white border border-gray-200 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+                onClick={() => router.push(`/candidates/${candidate.id}`)}
               >
-                <div className="flex flex-col items-center mt-6">
-                  <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl font-bold text-gray-700">
-                    {candidate.name.charAt(0)}
-                  </div>
-                  <h3 className="text-xl font-medium text-gray-900 mt-4">{candidate.name}</h3>
+                {/* Candidate Icon on top */}
+                <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl font-bold text-gray-700">
+                  <FaUser />
                 </div>
+                
+                {/* Candidate Name */}
+                <h3 className="text-xl font-medium text-gray-800 mt-4">{candidate.name}</h3>
+                
+                {/* Date of creation */}
                 <p className="mt-4 text-gray-500 text-sm">
                   Created on: {new Date(candidate.createdAt).toLocaleDateString()}
                 </p>
               </div>
             ))
           ) : (
-            <p>No candidates available.</p>
+            <p className="text-gray-500">No candidates available.</p>
           )}
         </div>
 
@@ -173,13 +188,19 @@ export default function HomePageContent() {
               placeholder="Candidate Name"
               value={candidateName}
               onChange={(e) => setCandidateName(e.target.value)}
-              className="border p-2 w-full mb-4 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="border p-3 w-full mb-4 rounded-lg focus:ring-2 focus:ring-gray-500"
             />
-            <div className="flex justify-end">
-              <button onClick={handleCreateCandidate} className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800">
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleCreateCandidate}
+                className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition"
+              >
                 Create Candidate
               </button>
-              <button onClick={closeModal} className="ml-4 py-2 px-4 bg-gray-300 rounded-lg hover:bg-gray-400">
+              <button
+                onClick={closeModal}
+                className="py-2 px-4 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+              >
                 Cancel
               </button>
             </div>

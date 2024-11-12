@@ -7,7 +7,8 @@ import { ATSCompatibilityResult, Weights } from "@/types";
 import * as mammoth from "mammoth";
 
 // Set the worker path for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+
 
 export default function AtsCompatibilityCheckerApp() {
   const [weights, setWeights] = useState<Weights>({});
@@ -444,7 +445,20 @@ export default function AtsCompatibilityCheckerApp() {
             })}
           </div>
         </div>
+        
       )}
+
+      {/* Go Back Button */}
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={() => router.back()}  // Go back to the previous page
+          className="bg-black hover:bg-gray-700 text-white font-bold py-2 px-6 rounded"
+        >
+          Go Back
+        </button>
+      </div>
     </div>
   );
 }
+
+

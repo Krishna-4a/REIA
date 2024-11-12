@@ -25,3 +25,18 @@ body {
     text-wrap: balance;
   }
 }
+.dot {
+  display: inline-block;
+  width: 6px; /* Size of the dots */
+  height: 6px; /* Size of the dots */
+  border-radius: 50%; /* Make dots circular */
+  background-color: gray; /* Base color of the dots */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover .dot {
+  background-color: black; /* Change color on hover */
+  transform: scale(1.2); /* Slightly increase size on hover */
+}
+
+

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import * as mammoth from "mammoth";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export default function ModifyResume() {
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);

@@ -62,9 +62,12 @@ def latex_to_pdf(json_resume, dst_path):
         resume_latex = use_template(latex_jinja_env, escaped_json_resume)
 
         tex_temp_path = os.path.join(os.path.realpath(templates_path), os.path.basename(dst_path).replace(".pdf", ".tex"))
+        print(tex_temp_path)
 
         write_file(tex_temp_path, resume_latex)
         save_latex_as_pdf(tex_temp_path, dst_path)
+        print(dst_path)
+        
         return resume_latex
     except Exception as e:
         print(e)
@@ -74,6 +77,7 @@ def use_template(jinja_env, json_resume):
     try:
         resume_template = jinja_env.get_template(f"resume.tex.jinja")
         resume = resume_template.render(json_resume)
+        print(resume)
 
         return resume
     except Exception as e:

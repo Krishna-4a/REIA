@@ -43,6 +43,8 @@ export default async function handler(req, res) {
       if (!req.file || !job_description || !recruiter_prompt || !api_key || !provider || !model) {
         return res.status(400).json({ error: 'Please fill all fields and upload the required files.' });
       }
+      
+
 
       // Prepare arguments for the Python script
       const pythonArgs = [
@@ -55,8 +57,9 @@ export default async function handler(req, res) {
         model                                          // Model
       ];
 
+        console.log(pythonArgs);
       // Spawn a child process to run the Python script
-      const pythonProcess = spawn('python3', pythonArgs);
+      const pythonProcess = spawn('python', pythonArgs);
 
       let pythonOutput = '';
 

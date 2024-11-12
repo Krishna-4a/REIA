@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import SessionProviderWrapper from "./SessionProviderWrapper";
 
 export const metadata = {
-  title: "Applicant Tracking System (ATS)",
+  title: "REIA",
   description: "A tool to evaluate resumes based on ATS compatibility.",
 };
 
