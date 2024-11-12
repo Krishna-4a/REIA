@@ -478,3 +478,4 @@ export default function GeneratedResumeTable({ candidate }: { candidate: Candida
     </div>
   );
 }
+

@@ -25,6 +25,12 @@ async function getCandidateWithResume(candidateId: number, resumeId: number) {
   }
 }
 
+// Function to capitalize the first letter of each word in the name
+const capitalizeName = (name: string) => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize first letter of name
+};
+
 export default async function CandidateResumePage({ params }: { params: { id: string; resumeid: string } }) {
   const candidateId = parseInt(params.id);
   const resumeId = parseInt(params.resumeid);
@@ -38,9 +44,10 @@ export default async function CandidateResumePage({ params }: { params: { id: st
     return redirect(`/candidates/${candidateId}/${resumeId}/no-generated-resume`);
   }
 
-  // Convert dates to strings to pass to the client component
+  // Serialize and capitalize candidate's name
   const candidateSerialized = {
     ...candidate,
+    name: capitalizeName(candidate.name), // Capitalize the candidate's name
     resumes: candidate.resumes.map((resume) => ({
       ...resume,
       uploadedAt: resume.uploadedAt.toISOString(),
@@ -61,13 +68,21 @@ export default async function CandidateResumePage({ params }: { params: { id: st
 
   return (
     <div className="container mx-auto p-6">
+      {/* Flex container for profile and Go Back button */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{candidate.name}'s Profile</h1>
+        {/* Go Back Button on the Left */}
+        <Link
+          href={`/candidates/${candidateId}`}
+          className="bg-black text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-gray-500 transition-shadow duration-200"
+        >
+          Back
+        </Link>
+
+        {/* Candidate's Name Centered */}
+        <h1 className="text-2xl font-bold mx-auto">{candidateSerialized.name}'s Profile</h1>
       </div>
+
       <GeneratedResumeTable candidate={candidateSerialized} />
-      <Link href={`/candidates/${candidateId}`} className="text-blue-500 mt-4 block">
-    Go Back
-    </Link>
     </div>
   );
 }

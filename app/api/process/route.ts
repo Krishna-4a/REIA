@@ -53,12 +53,7 @@ export async function POST(request: NextRequest) {
     const atsCompatibilityResults: ATSCompatibilityResult[] = [];
     const fileNamesArray = Array.isArray(fileNames) ? fileNames : [fileNames];
 
-    console.log(jobDescription)
-    console.log(resumeTexts)
-    console.log(fileNames)
-    console.log(weights)
-    console.log(candidateId)
-    console.log(resumeId)
+    
 
     if (flag === 0) {
       for (let i = 0; i < resumeTexts.length; i++) {

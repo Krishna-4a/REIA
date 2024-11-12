@@ -23,7 +23,16 @@ interface Candidate {
   atsScores: ATS_Score[];
 }
 
-export default function ResumeTable({ candidate }: { candidate: Candidate }) {
+// Capitalize function for candidate name
+const capitalizeName = (name: string) => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize the first letter
+};
+
+export default function ResumeTable() {
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [openSummaryIndex, setOpenSummaryIndex] = useState<number | null>(null);
   const [showJobDescription, setShowJobDescription] = useState<number | null>(null);
   const [jobDescriptionText, setJobDescriptionText] = useState<string>("");
@@ -50,7 +59,8 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
     try {
       const response = await fetch(jobDescriptionUrl);
       if (response.ok) {
-        const text = await response.text();
+        let text = await response.text();
+        text = text.trim(); // Remove leading and trailing whitespace
         setJobDescriptionText(text);
       } else {
         setJobDescriptionText("Failed to load Job Description");
@@ -60,6 +70,7 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
     }
     setLoading(false);
   };
+  
 
   const handleCloseSummaryModal = () => {
     setOpenSummaryIndex(null);
@@ -70,10 +81,44 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
     setJobDescriptionText("");
   };
 
+  const handleDeleteClick = (index: number) => {
+    setDeleteConfirmIndex(index);
+  };
+
+  const confirmDelete = async (resumeId: number) => {
+    try {
+      const response = await fetch(`/api/deleteResume`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ resumeId }),
+      });
+
+      if (response.ok) {
+        alert("Resume deleted successfully.");
+        setDeleteConfirmIndex(null); // Close delete confirmation modal
+        window.location.reload(); // Trigger a full page refresh
+      } else {
+        alert("Failed to delete the resume.");
+      }
+    } catch (error) {
+      alert("An error occurred while deleting the resume.");
+    } finally {
+      setDeleteConfirmIndex(null);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  if (!candidate) return <p>No candidate data available.</p>;
+
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Resumes and ATS Scores</h2>
-      <table className="min-w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-md">
+      {/* Display the capitalized candidate name */}
+      <h2 className="text-xl font-semibold mb-4">Candidates: {capitalizeName(candidate.name)}</h2>
+      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
         <thead className="bg-gray-200">
           <tr>
             {["Filename", "ATS Score", "Created At", "Actions"].map((header, idx) => (
