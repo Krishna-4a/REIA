@@ -7,7 +7,7 @@ import { ATSCompatibilityResult, Weights } from "@/types";
 import * as mammoth from "mammoth";
 
 // Set the worker path for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export default function AtsCompatibilityCheckerApp() {
   const [weights, setWeights] = useState<Weights>({});

@@ -1,5 +1,5 @@
 "use client";
-
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
@@ -13,11 +13,11 @@ export default function ModifyResume() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeFilename, setResumeFilename] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false initially
   const [recruiterPrompt, setRecruiterPrompt] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState("");
   const [pdfData, setPdfData] = useState<string | null>(null);
-  
+
   const weights = {
     skills_matching: 30,
     experience: 20,
@@ -67,9 +67,9 @@ export default function ModifyResume() {
     } catch (err) {
       setError('Failed to fetch resume data');
     } finally {
-      setLoading(false);
+      setLoading(false); // Ensure loading is false once data is fetched
     }
-  };  
+  };
 
   const fetchResumeFile = async (resumeUrl: string) => {
     try {
@@ -149,7 +149,6 @@ export default function ModifyResume() {
         const createdId = result.createdId;
         const resumeTexts = await extractText(generatedFile);
 
-
         const atsResponse = await fetch("/api/process", {
           method: "POST",
           headers: {
@@ -157,7 +156,7 @@ export default function ModifyResume() {
           },
           body: JSON.stringify({
             jobDescription: jobDescription,
-            resumeTexts: [resumeTexts],
+            resumeTexts,
             fileNames: [resumeFilename],
             weights,
             candidateId,
@@ -196,6 +195,7 @@ export default function ModifyResume() {
     formData.append("api_key", api_key);
     formData.append("provider", provider);
     formData.append("model", model);
+
     try {
       const response = await fetch("/api/server", {
         method: "POST",
@@ -225,29 +225,42 @@ export default function ModifyResume() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-3 px-3 relative">
+      {/* Go Back button using window.history.back() */}
+      <button
+        onClick={() => window.history.back()} // Use this to go back to the previous page
+        className="text-white bg-black px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-gray-500 transition-shadow duration-200 flex items-center absolute top-3 left-4"
+      >
+        Back
+      </button>
+
       <h1 className="text-2xl font-bold mb-6 text-center text-black">
         Build Resume
       </h1>
-      <div className="mb-4">
+
+      <div className="mb-4 flex justify-center">
+        {/* Reduced width for prompt with centered text */}
         <textarea
           value={recruiterPrompt}
           onChange={(e) => setRecruiterPrompt(e.target.value)}
-          rows={4}
-          className="p-2 block w-full text-sm text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+          className="w-2/3 h-32 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none text-center"
           placeholder="Enter any additional notes or recruiter prompts here..."
         />
       </div>
-      <div className="flex justify-center mt-6">
+
+      {/* Flex container for buttons */}
+      <div className="flex justify-center items-center mt-4">
         <button
           onClick={handleSubmit}
-          className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded"
+          className="bg-black  rounded-lg hover:shadow-lg hover:shadow-gray-500 text-white font-bold py-2 px-6 rounded  transition-shadow duration-200"
           disabled={loading}
         >
           {loading ? "Generating Resume..." : "Build Resume"}
         </button>
       </div>
+
       {errorMessage && <p className="text-red-600 text-center mt-4">{errorMessage}</p>}
+
       {pdfData && (
         <div className="mt-8">
           <h3 className="text-2xl font-semibold text-center mb-4 text-gray-700">

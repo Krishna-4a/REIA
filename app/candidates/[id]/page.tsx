@@ -15,6 +15,12 @@ async function getCandidate(id: number) {
   return candidate;
 }
 
+// Function to capitalize the first letter of each word in the name
+const capitalizeName = (name: string) => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize first letter of name
+};
+
 export default async function CandidatePage({ params }: { params: { id: string } }) {
   const candidateId = parseInt(params.id);
 
@@ -34,6 +40,7 @@ export default async function CandidatePage({ params }: { params: { id: string }
   // Convert dates to strings to pass to the client component
   const candidateSerialized = {
     ...candidate,
+    name: capitalizeName(candidate.name), // Capitalize the candidate's name
     resumes: candidate.resumes.map((resume) => ({
       ...resume,
       uploadedAt: resume.uploadedAt.toISOString(),
@@ -44,26 +51,32 @@ export default async function CandidatePage({ params }: { params: { id: string }
     })),
   };
 
-  // Pass candidate data to the client component for rendering
+  // Return the JSX layout with modified buttons and heading
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{candidate.name}'s Profile</h1>
         
-        {/* Create Resume Button */}
+        {/* Go Back Button aligned to the left */}
+        <Link 
+          href="/" 
+          className="text-white bg-black px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-gray-500 transition-shadow duration-200"
+        >
+          Back
+        </Link>
+        
+        <h1 className="text-2xl font-bold">{candidateSerialized.name}'s Profile</h1>
+        
+        {/* Upload Files Button aligned to the right */}
         <Link 
           href={`/generators?candidateId=${candidateId}`} 
-          className="bg-black text-white px-4 py-2 rounded-lg"
+          className="bg-black text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-gray-500 transition-shadow duration-200"
         >
           Upload Files
         </Link>
-      </div>
-      <ResumeTable candidate={candidateSerialized} />
 
-      <Link href="/" className="text-blue-500 mt-4 block">
-        Go Back
-      </Link>
+      </div>
+      
+      <ResumeTable candidate={candidateSerialized} />
     </div>
   );
 }
-

@@ -26,6 +26,12 @@ interface Candidate {
   atsScores: ATS_Score[];
 }
 
+// Capitalize function for candidate name
+const capitalizeName = (name: string) => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize the first letter
+};
+
 export default function ResumeTable() {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -89,12 +95,13 @@ export default function ResumeTable() {
   const handleJobDescriptionClick = async (index: number) => {
     setShowJobDescription(index);
     setLoading(true);
-
+  
     const jobDescriptionUrl = candidate!.resumes[index].JobDescriptionfileUrl;
     try {
       const response = await fetch(jobDescriptionUrl);
       if (response.ok) {
-        const text = await response.text();
+        let text = await response.text();
+        text = text.trim(); // Remove leading and trailing whitespace
         setJobDescriptionText(text);
       } else {
         setJobDescriptionText("Failed to load Job Description");
@@ -104,6 +111,7 @@ export default function ResumeTable() {
     }
     setLoading(false);
   };
+  
 
   const handleCloseSummaryModal = () => {
     setOpenSummaryIndex(null);
@@ -130,7 +138,8 @@ export default function ResumeTable() {
 
       if (response.ok) {
         alert("Resume deleted successfully.");
-        router.refresh();
+        setDeleteConfirmIndex(null); // Close delete confirmation modal
+        window.location.reload(); // Trigger a full page refresh
       } else {
         alert("Failed to delete the resume.");
       }
@@ -148,7 +157,8 @@ export default function ResumeTable() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Candidate: {candidate.name}</h2>
+      {/* Display the capitalized candidate name */}
+      <h2 className="text-xl font-semibold mb-4">Candidates: {capitalizeName(candidate.name)}</h2>
       <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
         <thead className="bg-gray-200">
           <tr>
@@ -231,7 +241,7 @@ export default function ResumeTable() {
       {/* Summary Modal */}
       {openSummaryIndex !== null && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-scroll rounded-xl shadow-lg relative">
+          <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-auto rounded-xl shadow-lg relative">
             <button
               onClick={handleCloseSummaryModal}
               className="absolute top-2 right-2 px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
@@ -249,7 +259,7 @@ export default function ResumeTable() {
       {/* Job Description Modal */}
       {showJobDescription !== null && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-scroll rounded-xl shadow-lg relative">
+          <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-auto rounded-xl shadow-lg relative">
             {candidate.resumes[showJobDescription]?.JobDescriptionfileUrl && (
               <a
                 href={candidate.resumes[showJobDescription]?.JobDescriptionfileUrl}

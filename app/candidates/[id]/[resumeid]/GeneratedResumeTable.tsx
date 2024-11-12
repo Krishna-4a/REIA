@@ -414,6 +414,7 @@ export default function GeneratedResumeTable({ candidate }: { candidate: Candida
                     })}
                 </tbody>
             </table>
+            
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm !== null && (
@@ -441,39 +442,55 @@ export default function GeneratedResumeTable({ candidate }: { candidate: Candida
 
             {/* Summary Modal */}
             {openSummaryIndex !== null && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-scroll rounded-xl shadow-lg relative">
-                        <button
-                            onClick={handleCloseSummaryModal}
-                            className="absolute top-2 right-2 px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
-                        >
-                            Close
-                        </button>
-                        <h3 className="text-md font-semibold mb-1">Summary</h3>
-                        <p className="text-sm text-gray-600 whitespace-pre-line">
-                            {candidate.generatedResumes[openSummaryIndex]?.generatedATSScores.find((score) => score.createdAt)?.summary || "No summary available for this resume."}
-                        </p>
-                    </div>
-                </div>
-            )}
-            
-            {/* Job Description Modal */}
-            {showJobDescription !== null && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 w-[820px] h-[400px] overflow-y-scroll rounded-xl shadow-lg relative">
-                        <button
-                            onClick={handleCloseJobDescriptionModal}
-                            className="absolute top-2 right-2 px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
-                        >
-                            Close
-                        </button>
-                        <h3 className="text-md font-semibold mb-1">Job Description</h3>
-                        <p className="text-sm text-gray-700 mb-4">
-                            {candidate.generatedResumes[showJobDescription]?.JobDescription || "No Job Description available for this resume."}
-                        </p>
-                    </div>
-                </div>
-            )}
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+        <div className="bg-white p-4 w-[820px] max-h-[400px] overflow-y-auto rounded-xl shadow-lg relative">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-md font-semibold">Summary</h3>
+                <button
+                    onClick={handleCloseSummaryModal}
+                    className="px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
+                >
+                    Close
+                </button>
+            </div>
+            <p className="text-sm text-gray-600 whitespace-pre-line">
+                {candidate.atsScores[openSummaryIndex]?.summary || "No summary available for this resume."}
+            </p>
         </div>
-    );
+    </div>
+)}
+
+{showJobDescription !== null && (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+        <div className="bg-white p-4 w-[820px] max-h-[400px] overflow-y-auto rounded-xl shadow-lg relative">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-md font-semibold">Job Description</h3>
+                <div className="flex space-x-2">
+                    {candidate.resumes[showJobDescription]?.JobDescriptionfileUrl && (
+                        <a
+                            href={candidate.resumes[showJobDescription]?.JobDescriptionfileUrl}
+                            download
+                            className="px-4 py-1 bg-black text-white rounded-full hover:bg-green-700 text-sm"
+                        >
+                            Download
+                        </a>
+                    )}
+                    <button
+                        onClick={handleCloseJobDescriptionModal}
+                        className="px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+            <p className="text-sm text-gray-700">
+                {candidate.resumes[showJobDescription]?.JobDescription || "No Job Description available for this resume."}
+            </p>
+        </div>
+    </div>
+)}
+
+    </div>
+  );
 }
+
