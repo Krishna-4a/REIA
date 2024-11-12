@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 interface Resume {
@@ -23,21 +23,32 @@ interface Candidate {
   atsScores: ATS_Score[];
 }
 
-// Capitalize function for candidate name
-const capitalizeName = (name: string) => {
-  if (!name) return '';
-  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize the first letter
-};
-
-export default function ResumeTable() {
-  const [candidate, setCandidate] = useState<Candidate | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ResumeTable({ candidate }: { candidate: Candidate }) {
   const [openSummaryIndex, setOpenSummaryIndex] = useState<number | null>(null);
   const [showJobDescription, setShowJobDescription] = useState<number | null>(null);
   const [jobDescriptionText, setJobDescriptionText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [dropdownIndex, setDropdownIndex] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
   const router = useRouter();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownIndex(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleDropdownToggle = (index: number) => {
+    setDropdownIndex(dropdownIndex === index ? null : index);
+  };
 
   const handleViewSummaryClick = (index: number) => {
     setOpenSummaryIndex(index);
@@ -59,8 +70,7 @@ export default function ResumeTable() {
     try {
       const response = await fetch(jobDescriptionUrl);
       if (response.ok) {
-        let text = await response.text();
-        text = text.trim(); // Remove leading and trailing whitespace
+        const text = await response.text();
         setJobDescriptionText(text);
       } else {
         setJobDescriptionText("Failed to load Job Description");
@@ -70,7 +80,6 @@ export default function ResumeTable() {
     }
     setLoading(false);
   };
-  
 
   const handleCloseSummaryModal = () => {
     setOpenSummaryIndex(null);
@@ -81,44 +90,10 @@ export default function ResumeTable() {
     setJobDescriptionText("");
   };
 
-  const handleDeleteClick = (index: number) => {
-    setDeleteConfirmIndex(index);
-  };
-
-  const confirmDelete = async (resumeId: number) => {
-    try {
-      const response = await fetch(`/api/deleteResume`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ resumeId }),
-      });
-
-      if (response.ok) {
-        alert("Resume deleted successfully.");
-        setDeleteConfirmIndex(null); // Close delete confirmation modal
-        window.location.reload(); // Trigger a full page refresh
-      } else {
-        alert("Failed to delete the resume.");
-      }
-    } catch (error) {
-      alert("An error occurred while deleting the resume.");
-    } finally {
-      setDeleteConfirmIndex(null);
-    }
-  };
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
-
-  if (!candidate) return <p>No candidate data available.</p>;
-
   return (
     <div>
-      {/* Display the capitalized candidate name */}
-      <h2 className="text-xl font-semibold mb-4">Candidates: {capitalizeName(candidate.name)}</h2>
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+      <h2 className="text-2xl font-bold mb-4">Resumes and ATS Scores</h2>
+      <table className="min-w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-md">
         <thead className="bg-gray-200">
           <tr>
             {["Filename", "ATS Score", "Created At", "Actions"].map((header, idx) => (
@@ -135,22 +110,15 @@ export default function ResumeTable() {
           {candidate.resumes.map((resume, index) => {
             const atsScore = candidate.atsScores[index]?.score || "N/A";
             const summary = candidate.atsScores[index]?.summary || "No summary available";
-            const [isDropdownOpen, setDropdownOpen] = useState(false);
-            const handleDropdownMouseEnter = () => setDropdownOpen(true);
-            const handleDropdownMouseLeave = () => setDropdownOpen(false);
 
             return (
               <tr key={resume.id} className="hover:bg-gray-100 transition duration-150">
                 <td className="border-b border-gray-300 text-center py-1 text-sm">{resume.Resumefilename}</td>
                 <td className="border-b border-gray-300 text-center py-1 text-sm">{atsScore}%</td>
                 <td className="border-b border-gray-300 text-center py-1 text-sm">{new Date(resume.uploadedAt).toLocaleDateString()}</td>
-                <td
-                  className="border-b border-gray-300 text-center py-1 text-sm relative"
-                  onMouseEnter={handleDropdownMouseEnter}
-                  onMouseLeave={handleDropdownMouseLeave}
-                >
+                <td className="border-b border-gray-300 text-center py-1 text-sm relative">
                   <button
-                    onClick={() => setDropdownOpen(!isDropdownOpen)}
+                    onClick={() => handleDropdownToggle(index)}
                     className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-transparent hover:bg-gray-200 focus:outline-none transition duration-150 ease-in-out"
                   >
                     <span className="flex space-x-1">
@@ -160,8 +128,11 @@ export default function ResumeTable() {
                     </span>
                   </button>
 
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                  {dropdownIndex === index && (
+                    <div
+                      ref={dropdownRef}
+                      className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                    >
                       <div className="py-1">
                         <button
                           className="flex items-center px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
