@@ -60,18 +60,18 @@ export default function NoResumePage({ params }: { params: { id: string } }) {
   return (
     <div className="container mx-auto p-6 text-center">
       <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-bold">All Files for {candidate?.name || 'Candidate'}</h1>
+        <h1 className="text-3xl font-bold">All Resumes for {candidate?.name || 'Candidate'}</h1>
         <button
           onClick={handleUploadFilesClick}
           className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
         >
-          Upload Files
+          Upload Resumes
         </button>
       </div>
 
-      <h2 className="text-2xl font-semibold">No Files Yet</h2>
+      <h2 className="text-2xl font-semibold">No Resumes Yet</h2>
       <p className="mt-4 text-gray-600">
-        You do not have any files yet. Upload one by clicking on the "Upload Files" button.
+        You do not have any Resumes yet. Upload one by clicking on the "Upload Resumes" button.
       </p>
 
       {/* Updated Go Back Link to go to the main candidates page */}

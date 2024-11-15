@@ -63,14 +63,14 @@ export default async function CandidatePage({ params }: { params: { id: string }
           Back
         </Link>
 
-        <h1 className="text-2xl font-bold">{candidate.name}'s Profile</h1>
+        <h1 className="text-2xl font-bold">All Resumes For {candidate.name}</h1>
 
-        {/* Upload Files Button */}
+        {/* Upload Resumes Button */}
         <Link
           href={`/generators?candidateId=${candidateId}`}
           className="bg-black text-white px-4 py-2 rounded-lg"
         >
-          Upload Files
+          Upload Resumes
         </Link>
       </div>
       

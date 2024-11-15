@@ -34,7 +34,6 @@ export function createOpenAiPrompt(
     Use the following format:
     ATS SCORE: <ATS Score> out of 100
 
-    SUMMARY:
     - <Suggestion 1>
     - <Suggestion 2>
     - <Suggestion 3>

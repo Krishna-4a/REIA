@@ -1,8 +1,9 @@
 "use client";
-
+ 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-
+import { useRouter,useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+ 
 interface Resume {
   id: number;
   Resumefilename: string;
@@ -11,28 +12,33 @@ interface Resume {
   JobDescriptionfileUrl: string;
   JobDescription: string;
 }
-
+ 
 interface ATS_Score {
   score: number;
   summary: string;
+  resumeId: number;
 }
-
+ 
 interface Candidate {
   id: number;
+  name: string;
   resumes: Resume[];
   atsScores: ATS_Score[];
 }
-
+ 
 export default function ResumeTable({ candidate }: { candidate: Candidate }) {
   const [openSummaryIndex, setOpenSummaryIndex] = useState<number | null>(null);
   const [showJobDescription, setShowJobDescription] = useState<number | null>(null);
   const [jobDescriptionText, setJobDescriptionText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [dropdownIndex, setDropdownIndex] = useState<number | null>(null);
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null);
+  const [resumes, setResumes] = useState<Resume[]>(candidate.resumes);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-
+ 
   const router = useRouter();
-
+ 
+  // Handle clicking outside dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -40,33 +46,42 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-
+ 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+ 
+  // // Reload page on load if redirected from another page
+  // useEffect(() => {
+  //   const handlePageReload = () => {
+  //     router.refresh();
+  //   }
+  //     handlePageReload();
+  //   }, []);
+   
+ 
   const handleDropdownToggle = (index: number) => {
     setDropdownIndex(dropdownIndex === index ? null : index);
   };
-
+ 
   const handleViewSummaryClick = (index: number) => {
     setOpenSummaryIndex(index);
   };
-
+ 
   const handleModifyResumeClick = (candidateId: number, resumeId: number) => {
     router.push(`/modifyresume?candidateId=${candidateId}&resumeId=${resumeId}`);
   };
-
-  const handleviewmodifiedresumesClick = (candidateId: number, resumeId: number) => {
+ 
+  const handleViewModifiedResumesClick = (candidateId: number, resumeId: number) => {
     router.push(`/candidates/${candidateId}/${resumeId}`);
   };
-
+ 
   const handleJobDescriptionClick = async (index: number) => {
     setShowJobDescription(index);
     setLoading(true);
-
-    const jobDescriptionUrl = candidate.resumes[index].JobDescriptionfileUrl;
+ 
+    const jobDescriptionUrl = resumes[index].JobDescriptionfileUrl;
     try {
       const response = await fetch(jobDescriptionUrl);
       if (response.ok) {
@@ -80,19 +95,47 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
     }
     setLoading(false);
   };
-
+ 
   const handleCloseSummaryModal = () => {
     setOpenSummaryIndex(null);
   };
-
+ 
   const handleCloseJobDescriptionModal = () => {
     setShowJobDescription(null);
     setJobDescriptionText("");
   };
-
+ 
+  const handleDeleteClick = (index: number) => {
+    setDeleteConfirmIndex(index);
+  };
+ 
+  const confirmDelete = async (resumeId: number) => {
+    try {
+      const response = await fetch(`/api/deleteResume`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ resumeId }),
+      });
+      if (response.ok) {
+        alert("Resume deleted successfully.");
+        setDeleteConfirmIndex(null); // Close delete confirmation modal
+ 
+        window.location.reload(); // Trigger a full page refresh
+      } else {
+        alert("Failed to delete the resume.");
+      }
+    } catch (error) {
+      alert("An error occurred while deleting the resume.");
+    } finally {
+      setDeleteConfirmIndex(null);
+    }
+  };
+ 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Resumes and ATS Scores</h2>
+      <h2 className="text-2xl font-bold mb-4"></h2>
       <table className="min-w-full max-w-xs bg-white border border-gray-300 rounded-lg shadow-md">
         <thead className="bg-gray-200">
           <tr>
@@ -107,15 +150,16 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
           </tr>
         </thead>
         <tbody>
-          {candidate.resumes.map((resume, index) => {
+          {resumes.map((resume, index) => {
             const atsScore = candidate.atsScores[index]?.score || "N/A";
-            const summary = candidate.atsScores[index]?.summary || "No summary available";
-
+ 
             return (
               <tr key={resume.id} className="hover:bg-gray-100 transition duration-150">
                 <td className="border-b border-gray-300 text-center py-1 text-sm">{resume.Resumefilename}</td>
                 <td className="border-b border-gray-300 text-center py-1 text-sm">{atsScore}%</td>
-                <td className="border-b border-gray-300 text-center py-1 text-sm">{new Date(resume.uploadedAt).toLocaleDateString()}</td>
+                <td className="border-b border-gray-300 text-center py-1 text-sm">
+                  {new Date(resume.uploadedAt).toLocaleDateString()}
+                </td>
                 <td className="border-b border-gray-300 text-center py-1 text-sm relative">
                   <button
                     onClick={() => handleDropdownToggle(index)}
@@ -127,7 +171,7 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
                       <span className="dot"></span>
                     </span>
                   </button>
-
+ 
                   {dropdownIndex === index && (
                     <div
                       ref={dropdownRef}
@@ -158,17 +202,19 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
                           className="flex items-center px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                           onClick={() => handleModifyResumeClick(candidate.id, resume.id)}
                         >
-                          Build Resume
+                          Transform Resume
                         </button>
                         <button
                           className="flex items-center px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                          onClick={() => handleviewmodifiedresumesClick(candidate.id, resume.id)}
+                          onClick={() => handleViewModifiedResumesClick(candidate.id, resume.id)}
                         >
-                          View Modified Resumes
+                          View Transformed Resumes
                         </button>
                         <button
-                          className="flex items-center px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                          onClick={() => console.log("Deleting File")}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          onClick={() => {
+                            handleDeleteClick(index);
+                          }}
                         >
                           Delete
                         </button>
@@ -181,7 +227,7 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
           })}
         </tbody>
       </table>
-
+ 
       {/* Summary Modal */}
       {openSummaryIndex !== null && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
@@ -190,7 +236,7 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
               <h3 className="text-md font-semibold">Summary</h3>
               <button
                 onClick={handleCloseSummaryModal}
-                className="px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
+                className="px-4 py-1 bg-black text-white rounded-full hover:bg-black-600 text-sm"
               >
                 Close
               </button>
@@ -201,7 +247,7 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
           </div>
         </div>
       )}
-
+ 
       {/* Job Description Modal */}
       {showJobDescription !== null && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
@@ -209,9 +255,9 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-md font-semibold">Job Description</h3>
               <div className="flex space-x-2">
-                {candidate.resumes[showJobDescription]?.JobDescriptionfileUrl && (
+                {resumes[showJobDescription]?.JobDescriptionfileUrl && (
                   <a
-                    href={candidate.resumes[showJobDescription]?.JobDescriptionfileUrl}
+                    href={resumes[showJobDescription]?.JobDescriptionfileUrl}
                     download
                     className="px-4 py-1 bg-black text-white rounded-full hover:bg-green-700 text-sm"
                   >
@@ -220,15 +266,39 @@ export default function ResumeTable({ candidate }: { candidate: Candidate }) {
                 )}
                 <button
                   onClick={handleCloseJobDescriptionModal}
-                  className="px-4 py-1 bg-black text-white rounded-full hover:bg-red-600 text-sm"
+                  className="px-4 py-1 bg-black text-white rounded-full hover:bg-black-600 text-sm"
                 >
                   Close
                 </button>
               </div>
             </div>
             <p className="text-sm text-gray-700">
-              {candidate.resumes[showJobDescription]?.JobDescription || "No Job Description available for this resume."}
+              {resumes[showJobDescription]?.JobDescription || "No Job Description available for this resume."}
             </p>
+          </div>
+        </div>
+      )}
+     
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmIndex !== null && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+            <p>Are you sure you want to delete this resume? This action cannot be undone.</p>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setDeleteConfirmIndex(null)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md mr-2 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => confirmDelete(candidate.resumes[deleteConfirmIndex!].id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

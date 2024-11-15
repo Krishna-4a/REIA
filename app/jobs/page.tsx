@@ -46,7 +46,7 @@ const CandidatePage: React.FC = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Candidate: {candidate.name}</h1>
           <button className="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-800">
-            Upload Files
+            Upload Resumes
           </button>
         </div>
 

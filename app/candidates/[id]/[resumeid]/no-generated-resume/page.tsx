@@ -47,12 +47,12 @@ export default function NoGeneratedResumePage({ params }: { params: { id: string
       {/* Header Section */}
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-3xl font-bold">
-          Generated Resumes for {candidate?.name || 'Candidate'}
+          Transformed Resumes For {candidate?.name || 'Candidate'}
         </h1>
       </div>
-      <h2 className="text-2xl font-semibold">No Generated Files Yet</h2>
+      <h2 className="text-2xl font-semibold">No Transformed Resumes Yet</h2>
       <p className="mt-4 text-gray-600">
-          You do not have any generated files yet. please select a resume and modify the resume to view files
+          You do not have any Transformed Resumes yet. please select a resume and transform the resume to view Transformed Resumes
       </p>
 
       {/* Go Back Link */}

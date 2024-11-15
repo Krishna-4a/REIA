@@ -79,7 +79,7 @@ export default async function CandidateResumePage({ params }: { params: { id: st
         </Link>
 
         {/* Candidate's Name Centered */}
-        <h1 className="text-2xl font-bold mx-auto">{candidateSerialized.name}'s Profile</h1>
+        <h1 className="text-2xl font-bold mx-auto">All Transformed Resumes For {candidateSerialized.name}</h1>
       </div>
 
       <GeneratedResumeTable candidate={candidateSerialized} />

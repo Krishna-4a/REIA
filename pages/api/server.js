@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       // Extract additional form fields
       const { job_description, recruiter_prompt, api_key, provider, model } = req.body;
 
-      if (!req.file || !job_description || !recruiter_prompt || !api_key || !provider || !model) {
+      if (!req.file || !job_description || !api_key || !provider || !model) {
         return res.status(400).json({ error: 'Please fill all fields and upload the required files.' });
       }
       

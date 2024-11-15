@@ -87,15 +87,25 @@ export default function HomePageContent() {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn();
-    } else {
+    if (status === "authenticated") {
       fetchCandidates();
     }
   }, [status]);
 
   if (status === "loading") return <p>Loading...</p>;
-  if (status === "unauthenticated") return null;
+  if (status === "unauthenticated") {
+    return (
+      <div className="text-center mt-10">
+        <p>Please sign in to access this page.</p>
+        <button
+          onClick={() => signIn()}
+          className="mt-4 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
 
   const isActiveRoute = (path: string) => pathname === path;
 
